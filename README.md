@@ -31,9 +31,13 @@ Set two environment variables:
 BITBUCKET_URL=https://bitbucket.example.com BITBUCKET_TOKEN=your-token uv run bitbucket-mcp
 ```
 
-## Claude Code Integration
+## Integration
 
-Add to your Claude Code MCP settings (`~/.claude.json` or project `.claude/settings.json`):
+This server runs locally via stdio rather than as a hosted HTTP service. Running locally keeps your Bitbucket access token on your own machine, avoids exposing an authenticated API endpoint over the network, and removes the need to manage server infrastructure or TLS certificates.
+
+### Claude Code
+
+Add to `~/.claude.json` or project `.claude/settings.json`:
 
 ```json
 {
@@ -48,6 +52,57 @@ Add to your Claude Code MCP settings (`~/.claude.json` or project `.claude/setti
     }
   }
 }
+```
+
+### GitHub Copilot (VS Code)
+
+Add to `.vscode/mcp.json` in your workspace:
+
+```json
+{
+  "servers": {
+    "bitbucket": {
+      "type": "stdio",
+      "command": "uv",
+      "args": ["run", "--directory", "/path/to/bitbucket-mcp", "bitbucket-mcp"],
+      "env": {
+        "BITBUCKET_URL": "https://bitbucket.yourcompany.com",
+        "BITBUCKET_TOKEN": "${input:bitbucket-token}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "bitbucket-token",
+      "description": "Bitbucket Server HTTP access token",
+      "password": true
+    }
+  ]
+}
+```
+
+### OpenAI Codex
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.bitbucket]
+command = "uv"
+args = ["run", "--directory", "/path/to/bitbucket-mcp", "bitbucket-mcp"]
+
+[mcp_servers.bitbucket.env]
+BITBUCKET_URL = "https://bitbucket.yourcompany.com"
+BITBUCKET_TOKEN = "your-token-here"
+```
+
+Or via CLI:
+
+```bash
+codex mcp add bitbucket \
+  --env BITBUCKET_URL=https://bitbucket.yourcompany.com \
+  --env BITBUCKET_TOKEN=your-token-here \
+  -- uv run --directory /path/to/bitbucket-mcp bitbucket-mcp
 ```
 
 ## Tools (28 total)
