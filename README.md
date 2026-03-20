@@ -33,18 +33,6 @@ Set two environment variables (plus one optional):
 | `BITBUCKET_TOKEN` | HTTP access token (create in Bitbucket > User Settings > HTTP Access Tokens) |
 | `BITBUCKET_LOG_LEVEL` | Log level for stderr output: `DEBUG`, `INFO`, `WARNING`, `ERROR` (default: `INFO`) |
 
-## Running
-
-```bash
-BITBUCKET_URL=https://bitbucket.example.com BITBUCKET_TOKEN=your-token uv run bitbucket-mcp
-```
-
-Or with Docker:
-
-```bash
-docker run --rm -i -e BITBUCKET_URL=https://bitbucket.example.com -e BITBUCKET_TOKEN=your-token bitbucket-mcp
-```
-
 ## Integration
 
 This server runs locally via stdio rather than as a hosted HTTP service. Running locally keeps your Bitbucket access token on your own machine, avoids exposing an authenticated API endpoint over the network, and removes the need to manage server infrastructure or TLS certificates.
