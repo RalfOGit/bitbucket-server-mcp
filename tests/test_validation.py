@@ -23,8 +23,9 @@ class TestValidateBaseUrl:
     def test_strips_trailing_slash(self):
         assert validate_base_url("https://bitbucket.example.com/") == "https://bitbucket.example.com"
 
-    def test_http_allowed(self):
-        assert validate_base_url("http://localhost:7990") == "http://localhost:7990"
+    def test_http_rejected(self):
+        with pytest.raises(ValidationError, match="https://"):
+            validate_base_url("http://localhost:7990")
 
     def test_invalid_scheme(self):
         with pytest.raises(ValidationError, match="https://"):
