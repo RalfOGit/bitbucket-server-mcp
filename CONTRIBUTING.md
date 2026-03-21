@@ -33,7 +33,7 @@ Thank you for your interest in contributing. This guide covers everything you ne
 
 ```bash
 git clone <repo-url>
-cd bitbucket-mcp
+cd bitbucket-server-mcp
 uv sync                    # Install all dependencies (including dev)
 uv run pytest -v           # Run the test suite
 ```
