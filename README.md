@@ -1,27 +1,45 @@
 # Bitbucket Server MCP
 
+[![CI](https://github.com/ManpreetShuann/bitbucket-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/ManpreetShuann/bitbucket-mcp/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/bitbucket-mcp)](https://pypi.org/project/bitbucket-mcp/)
+[![Python](https://img.shields.io/pypi/pyversions/bitbucket-mcp)](https://pypi.org/project/bitbucket-mcp/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 An MCP (Model Context Protocol) server for Atlassian Bitbucket Server / Data Center (Enterprise). Provides 55 tools for reading and writing projects, repositories, branches, files, commits, pull requests, and code search — with **no deletion operations** by design.
 
-## Prerequisites
+## Installation
 
-- Python 3.14+
-- [uv](https://docs.astral.sh/uv/) package manager
-- Bitbucket Server 7.x+ with HTTP access tokens enabled
-
-## Setup
+### From PyPI (recommended)
 
 ```bash
-# Clone and install
+pip install bitbucket-mcp
+```
+
+Or with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv pip install bitbucket-mcp
+```
+
+### From source
+
+```bash
+git clone https://github.com/ManpreetShuann/bitbucket-mcp.git
 cd bitbucket-mcp
 uv sync
 ```
 
-### Setup via Docker (no local Python/uv required)
+### Via Docker (no local Python required)
 
 ```bash
 cd bitbucket-mcp
 docker build -t bitbucket-mcp .
 ```
+
+## Prerequisites
+
+- Python 3.10+
+- Bitbucket Server 7.x+ with HTTP access tokens enabled
 
 ## Configuration
 
@@ -262,12 +280,27 @@ codex mcp add bitbucket \
 | `get_attachment_metadata` | Get attachment metadata |
 | `save_attachment_metadata` | Create or update attachment metadata |
 
-## Running Tests
+## Development
 
 ```bash
-uv run pytest -v
+git clone https://github.com/ManpreetShuann/bitbucket-mcp.git
+cd bitbucket-mcp
+uv sync                # Install all dependencies (including dev)
+uv run pytest -v       # Run tests
+uv run ruff check src/ tests/   # Lint
+uv run ruff format src/ tests/  # Format
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full development guidelines.
 
 ## Pagination
 
 All list tools accept `start` (default 0) and `limit` (default 25) parameters. Responses include `isLastPage` and `nextPageStart` for fetching subsequent pages.
+
+## Security
+
+See [SECURITY.md](SECURITY.md) for our security policy and vulnerability reporting instructions.
+
+## License
+
+[MIT](LICENSE)
