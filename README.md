@@ -167,8 +167,8 @@ Add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.bitbucket]
-command = "uv"
-args = ["run", "--directory", "/path/to/bitbucket-server-mcp", "bitbucket-server-mcp"]
+command = "uvx"
+args = ["bitbucket-server-mcp"]
 
 [mcp_servers.bitbucket.env]
 BITBUCKET_URL = "https://bitbucket.yourcompany.com"
@@ -181,7 +181,7 @@ Or via CLI:
 codex mcp add bitbucket \
   --env BITBUCKET_URL=https://bitbucket.yourcompany.com \
   --env BITBUCKET_TOKEN=your-token-here \
-  -- uv run --directory /path/to/bitbucket-server-mcp bitbucket-server-mcp
+  -- uvx bitbucket-server-mcp
 ```
 
 ## Tools (54 total)
