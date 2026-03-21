@@ -13,10 +13,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Only run when CI succeeds and not on release commits (avoid infinite loops)
-    if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      !startsWith(github.event.workflow_run.head_commit.message, 'chore(release):')
+    # Only run when CI succeeds
+    if: github.event.workflow_run.conclusion == 'success'
 
     environment:
       name: pypi
@@ -28,17 +26,31 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check for release commit
+        id: skip
+        run: |
+          MSG=$(git log -1 --format=%s)
+          if [[ "$MSG" == chore\(release\):* ]]; then
+            echo "is_release=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping: release commit detected."
+          else
+            echo "is_release=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Python
+        if: steps.skip.outputs.is_release != 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install dependencies
+        if: steps.skip.outputs.is_release != 'true'
         run: |
           python -m pip install --upgrade pip
           pip install python-semantic-release build
 
       - name: Configure git
+        if: steps.skip.outputs.is_release != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -48,16 +60,21 @@ jobs:
       #   fix:/perf: -> patch bump (1.0.x)
       #   BREAKING CHANGE: -> major bump (x.0.0)
       - name: Python Semantic Release — Determine version
+        if: steps.skip.outputs.is_release != 'true'
         id: semver
         run: |
-          OUTPUT=$(semantic-release --noop version --print 2>/dev/null) || true
-          echo "new_version=$OUTPUT" >> "$GITHUB_OUTPUT"
-          if [ -z "$OUTPUT" ]; then
+          OUTPUT=$(semantic-release --noop version --print 2>&1) || true
+          # --print outputs the next version number or nothing if no release needed
+          # Filter to only a valid semver line (digits and dots)
+          VERSION=$(echo "$OUTPUT" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+' | tail -1)
+          echo "new_version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [ -z "$VERSION" ]; then
             echo "released=false" >> "$GITHUB_OUTPUT"
             echo "No new release needed."
+            echo "PSR output: $OUTPUT"
           else
             echo "released=true" >> "$GITHUB_OUTPUT"
-            echo "New version: $OUTPUT"
+            echo "New version: $VERSION"
           fi
 
       - name: Python Semantic Release — Version, changelog & tag
@@ -65,7 +82,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          semantic-release version --no-vcs-release
+          semantic-release version --skip-build --no-vcs-release
+
+      - name: Push version commit & tag
+        if: steps.semver.outputs.released == 'true'
+        run: |
+          git push origin master --follow-tags
 
       - name: Build package
         if: steps.semver.outputs.released == 'true'
@@ -92,7 +114,7 @@ jobs:
         run: |
           gh release create "v${{ steps.semver.outputs.new_version }}" dist/* \
             --title "v${{ steps.semver.outputs.new_version }}" \
-            --notes-file CHANGELOG.md
+            --generate-notes
 
       - name: Summary
         if: steps.semver.outputs.released == 'true'
