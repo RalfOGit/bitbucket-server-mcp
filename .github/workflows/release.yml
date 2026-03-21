@@ -87,7 +87,8 @@ jobs:
       - name: Push version commit & tag
         if: steps.semver.outputs.released == 'true'
         run: |
-          git push origin master --follow-tags
+          git push origin master
+          git push origin --tags
 
       - name: Build package
         if: steps.semver.outputs.released == 'true'
