@@ -65,7 +65,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          semantic-release version --no-push
+          semantic-release version
+          git push origin master --tags
 
       - name: Build package
         if: steps.semver.outputs.released == 'true'
@@ -90,7 +91,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          semantic-release publish --no-upload
+          gh release create "v${{ steps.semver.outputs.new_version }}" dist/* \
+            --title "v${{ steps.semver.outputs.new_version }}" \
+            --generate-notes
 
       - name: Summary
         if: steps.semver.outputs.released == 'true'
