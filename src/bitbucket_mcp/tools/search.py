@@ -15,8 +15,10 @@ The search API changed between Bitbucket Server and Data Center:
   qualifiers in the query string (``project:KEY``, ``repo:slug``).
 
 The client tries POST first and falls back to GET on 405.  The tools
-below build the correct ``params`` dict for both paths, and normalise
-the two different response shapes into a single ``values`` list.
+below build a ``params`` dict suitable for the GET path (flat query
+params); the client's ``_build_search_post_body()`` translates it into
+the POST body, including search-syntax qualifiers and entity-key
+mapping.  ``_normalise_response()`` unifies the two response shapes.
 
 If the Elasticsearch plugin is not installed, the search endpoint returns
 404 — the tool handles this with a user-friendly message.
@@ -36,35 +38,26 @@ from bitbucket_mcp.validation import (
 )
 
 
-def _build_search_query(
-    query: str, project_key: str, repo_slug: str,
-) -> str:
-    """Embed optional project/repo filters as Bitbucket search-syntax qualifiers."""
-    parts = [query]
-    if project_key:
-        parts.append(f"project:{project_key}")
-    if repo_slug:
-        parts.append(f"repo:{repo_slug}")
-    return " ".join(parts)
-
-
 def _normalise_response(result: dict) -> dict:
     """Return a consistent shape regardless of GET (old) vs POST (new) response.
 
     Old GET responses have a top-level ``values`` list.
-    New POST responses nest results under ``code.values``.
+    New POST responses nest results under an entity key — ``code`` for
+    content searches, ``path`` for file searches.
     This helper always returns ``{"values": [...], ...}``.
     """
-    if "code" in result and "values" not in result:
-        code = result["code"]
-        return {
-            "values": code.get("values", []),
-            "count": code.get("count"),
-            "isLastPage": code.get("isLastPage"),
-            "start": code.get("start"),
-            "nextStart": code.get("nextStart"),
-            "scope": result.get("scope"),
-        }
+    # Check for entity-keyed POST response (code or path)
+    for entity_key in ("code", "path"):
+        if entity_key in result and "values" not in result:
+            entity = result[entity_key]
+            return {
+                "values": entity.get("values", []),
+                "count": entity.get("count"),
+                "isLastPage": entity.get("isLastPage"),
+                "start": entity.get("start"),
+                "nextStart": entity.get("nextStart"),
+                "scope": result.get("scope"),
+            }
     return result
 
 
@@ -93,9 +86,8 @@ def register_tools(mcp: FastMCP, client: BitbucketClient) -> None:
                 validate_repo_slug(repo_slug)
 
             clamped_limit = max(1, min(limit, 1000))
-            search_query = _build_search_query(query, project_key, repo_slug)
             params: dict = {
-                "query": search_query,
+                "query": query,
                 "limit": clamped_limit,
                 "type": "content",
             }
@@ -138,9 +130,8 @@ def register_tools(mcp: FastMCP, client: BitbucketClient) -> None:
                 validate_repo_slug(repo_slug)
 
             clamped_limit = max(1, min(limit, 1000))
-            search_query = _build_search_query(query, project_key, repo_slug)
             params: dict = {
-                "query": search_query,
+                "query": query,
                 "limit": clamped_limit,
                 "type": "path",
             }
