@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v1.5.0 (2026-03-22)
+
+### Bug Fixes
+
+- Preserve PR description in publish/convert draft operations
+  ([`25dcdac`](https://github.com/ManpreetShuann/bitbucket-server-mcp/commit/25dcdac95a5e4ec34a563583f759fc47321751a3))
+
+### Features
+
+- Add draft pull request workflow tools
+  ([`9e41b30`](https://github.com/ManpreetShuann/bitbucket-server-mcp/commit/9e41b307be5ddd5fbd92f5bdc3aa931a8761130b))
+
+
 ## v1.4.4 (2026-03-21)
 
 ### Bug Fixes
