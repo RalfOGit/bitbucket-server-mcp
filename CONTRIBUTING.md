@@ -46,9 +46,11 @@ uv run pytest -v           # Run the test suite
 
 | Variable | Required | Description |
 |---|---|---|
-| `BITBUCKET_URL` | Yes (runtime) | Base URL of your Bitbucket Server instance |
+| `BITBUCKET_URL` | Yes (runtime) | Base URL of your Bitbucket Server instance. Must use HTTPS. |
 | `BITBUCKET_TOKEN` | Yes (runtime) | HTTP access token (personal access token) |
 | `BITBUCKET_LOG_LEVEL` | No | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR` (default: `INFO`) |
+| `BITBUCKET_ALLOW_DANGEROUS_DELETE` | No | Set to `1` to enable Tier-1 delete tools (branch, tag, PR, comment, task, attachment) |
+| `BITBUCKET_ALLOW_DESTRUCTIVE_DELETE` | No | Set to `1` to enable Tier-2 delete tools (project, repository). Requires `DANGEROUS=1` too. |
 
 These are only needed when running the server locally. Tests do not require them.
 
