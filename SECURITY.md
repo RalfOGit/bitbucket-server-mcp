@@ -25,7 +25,7 @@ If you discover a security vulnerability in this project, **please report it res
 
 ### What to expect
 
-- **Accepted vulnerabilities** are fixed in a patch release and documented in the [CHANGELOG](CHANGELOG.md).
+- **Accepted vulnerabilities** are fixed in a patch release and documented in the [CHANGELOG](https://github.com/ManpreetShuann/bitbucket-server-mcp/blob/master/CHANGELOG.md).
 - **Declined reports** will receive an explanation of why the issue is not considered a vulnerability.
 
 ---
