@@ -21,6 +21,7 @@ When ``fields`` is empty or ``None`` the function behaves identically to
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from typing import Any
 
@@ -42,6 +43,9 @@ _TIMESTAMP_FIELDS: frozenset[str] = frozenset({
 
 _MS_THRESHOLD = 1_000_000_000_000  # values >= this are treated as milliseconds
 
+# Set BITBUCKET_CONVERT_TIMESTAMPS=false to disable epoch → ISO conversion.
+_CONVERT_TIMESTAMPS: bool = os.environ.get("BITBUCKET_CONVERT_TIMESTAMPS", "false").strip().lower() != "false"
+
 
 def _fmt_epoch(ms: int) -> str:
     """Convert a millisecond epoch to a local-time string ``yyyy-MM-dd HH:mm:ss``."""
@@ -49,7 +53,12 @@ def _fmt_epoch(ms: int) -> str:
 
 
 def _convert_timestamps(obj: Any) -> Any:
-    """Recursively replace known epoch-ms fields with human-readable date strings."""
+    """Recursively replace known epoch-ms fields with human-readable date strings.
+
+    Conversion is skipped entirely when ``BITBUCKET_CONVERT_TIMESTAMPS=false``.
+    """
+    if not _CONVERT_TIMESTAMPS:
+        return obj
     if isinstance(obj, dict):
         return {
             k: (_fmt_epoch(v) if k in _TIMESTAMP_FIELDS and isinstance(v, int) and v >= _MS_THRESHOLD else _convert_timestamps(v))
@@ -170,8 +179,9 @@ def json_dumps(obj: Any, fields: str = "", indent: int = 2) -> str:
     Drop-in replacement for ``json.dumps(obj, indent=2)`` in MCP tool handlers.
     When *fields* is non-empty the Atlassian-style filter is applied before
     serialisation, reducing the payload to only the requested paths.
-    Epoch millisecond timestamps in known date fields are always converted to
-    human-readable local-time strings (``yyyy-MM-dd HH:mm:ss``).
+    Epoch millisecond timestamps in known date fields are converted to
+    human-readable local-time strings (``yyyy-MM-dd HH:mm:ss``) unless
+    ``BITBUCKET_CONVERT_TIMESTAMPS=false`` is set.
     """
     if fields:
         obj = apply_fields(obj, fields)
